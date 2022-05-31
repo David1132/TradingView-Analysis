@@ -1,0 +1,60 @@
+//@version=5
+
+//////////////////////////////////////////////////////////////
+// The following is for the description of this script
+// The inputs that can be changed:
+// - Number of bars to get all-time high price
+// - Location on the y-axis to place the down/up label 
+
+// This chart will tell you the following:
+// - How much the ticker has gone up/down compared to the all-time high
+
+// You are able to make the following changes
+// - Change number of bars to find the highest ticker price from
+// - Move the how much the ticker has gone up/down label up or 
+//   down the chart if it is blocking your view
+///////////////////////////////////////////////////////////////
+
+indicator(title='Percentage up/down', shorttitle='Percentage up/down', overlay=(true))
+
+//How many bars to look back on to find the highest price in historical records
+Stock_Price_Highest_Userinput = input.int(200, "Bars to use", 
+     tooltip="Enter the number of bars to look back on to find the highest price")
+Price_Below_Over = "Down "
+
+//Gets the stock's current and highest price based on number of bars to look back to
+Stock_Price_Current = request.security(syminfo.tickerid, timeframe.period, close)
+Stock_Price_Latest_Price = request.security(syminfo.tickerid, timeframe.period, close)
+Stock_Price_Highest = ta.highest(Stock_Price_Highest_Userinput)
+
+//Where to put the percentage down/up label
+Ticker_Updown_Label = input.int(5, "Where to place label", 
+     tooltip="Enter the percentage where to place the up/down label. If the up/down label is not showing, enter the current price in dollars of the current ticker")
+     
+if Ticker_Updown_Label == 5
+    Ticker_Updown_Label := int(Stock_Price_Latest_Price)
+     
+//Calculates the stock's high and low yield in a percentage
+Price_Drop = ((Stock_Price_Current / Stock_Price_Highest - 1) *100)
+
+
+//Label that will display the percentage up/down, the ticker's highest and current price
+//Set x-coordinates negative to push the label to the left and y negative to push label below the zero line
+//The following two lines ensures previous labels are deleted before showing the most recent one
+var label Over_Under_Highest = na
+label.delete(Over_Under_Highest)
+
+Over_Under_Highest := label.new(x=bar_index-35, y=Ticker_Updown_Label, size=size.normal, textalign=text.align_left,
+     tooltip="If below all time high, the percentage will be negative. Current Highest and most recent ticker price is shown")
+     
+//Check if current price is new high or lower than all-time high
+//If new all-time high or same as all-time high, change the value
+if Price_Drop>0.00
+    Price_Below_Over := "Up "
+
+//Display the label with the relevant information about the ticker
+label.set_color(id=Over_Under_Highest, color=color.white)
+label.set_text(id=Over_Under_Highest, text=Price_Below_Over + str.tostring(Price_Drop, "#.###") +
+     "% high $" + str.tostring(Stock_Price_Highest, "#.##") + 
+     " current $" + str.tostring(Stock_Price_Current, "#.##"))
+     
