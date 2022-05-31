@@ -1,0 +1,92 @@
+//@version=5
+
+//////////////////////////////////////////////////////////////
+// The following is for the description of this script
+// The inputs that can be changed:
+// - Number of bars to get all-time high price
+// - Price target for the percentage down from all-time high price
+
+// This chart will tell you the following:
+// - What price to buy at for the percentage down user requests
+
+// You are able to make the following changes
+// - Change number of bars to find the highest ticker price from
+// - Percentage down to find price to buy security at 
+// - Up to 8 buy levels can be created with the last 5 optional 
+//   
+///////////////////////////////////////////////////////////////
+
+indicator(title='Price Target percent drop', shorttitle='Target price', overlay=(true))
+
+//Gets the stock's highest price
+Stock_Price_Highest = ta.highest(input.int(200, "Bars to use", 
+     tooltip="Enter the number of bars to find the highest price"))
+     
+//Gets the current stock price for the percent down indicator
+Stock_Price_Current = request.security(syminfo.tickerid, timeframe.period, close)
+
+//How many bars to look back on to find the highest price in historical records
+Stock_Price_Down_Userinput1 = input.int(5, "First support level", 
+     tooltip="Enter the first support level to buy at in %")
+Stock_Price_Down_Userinput2 = input.int(10, "Second support level", 
+     tooltip="Enter the second support level to buy at in %")
+Stock_Price_Down_Userinput3 = input.int(20, "Third support level", 
+     tooltip="Enter the third support level to buy at in %")
+Stock_Price_Down_Userinput4 = input.int(40, "Fourth support level", 
+     tooltip="Enter the fourth support level to buy at in %. Enter 0 to remove this support level")
+Stock_Price_Down_Userinput5 = input.int(0, "Fifth support level", 
+     tooltip="Enter the fifth support level to buy at in %. Enter 0 to remove this support level")
+Stock_Price_Down_Userinput6 = input.int(0, "Sixth support level", 
+     tooltip="Enter the sixth support level to buy at in %. Enter 0 to remove this support level")
+Stock_Price_Down_Userinput7 = input.int(0, "Seventh support level", 
+     tooltip="Enter the seventh support level to buy at in %")
+Stock_Price_Down_Userinput8 = input.int(0, "Eighth support level", 
+     tooltip="Enter the eighth support level to buy at in %. Enter 0 to remove this support level")
+     
+//If the user enters 0 in the Stock_Price_Down_Userinput field, remove the line and value
+if (Stock_Price_Down_Userinput4 < 1)
+    Stock_Price_Down_Userinput4 := na
+
+if (Stock_Price_Down_Userinput5 < 1)
+    Stock_Price_Down_Userinput5 := na
+    
+if (Stock_Price_Down_Userinput6 < 1)
+    Stock_Price_Down_Userinput6 := na
+
+if (Stock_Price_Down_Userinput7 < 1)
+    Stock_Price_Down_Userinput7 := na
+
+if (Stock_Price_Down_Userinput8 < 1)
+    Stock_Price_Down_Userinput8 := na
+     
+//Get the 5%, 10%, 20% down price targets
+stockDown5Percent = Stock_Price_Highest*(1-Stock_Price_Down_Userinput1*0.01)
+stockDown10Percent = Stock_Price_Highest*(1-Stock_Price_Down_Userinput2*0.01)
+stockDown20Percent = Stock_Price_Highest*(1-Stock_Price_Down_Userinput3*0.01)
+stockDown40Percent = Stock_Price_Highest*(1-Stock_Price_Down_Userinput4*0.01)
+stockDown45Percent = Stock_Price_Highest*(1-Stock_Price_Down_Userinput5*0.01)
+stockDown55Percent = Stock_Price_Highest*(1-Stock_Price_Down_Userinput6*0.01)
+stockDown65Percent = Stock_Price_Highest*(1-Stock_Price_Down_Userinput7*0.01)
+stockDown75Percent = Stock_Price_Highest*(1-Stock_Price_Down_Userinput8*0.01)
+
+plot(stockDown5Percent, title="5% down price target")
+plot(stockDown10Percent, title="10% down price target")
+plot(stockDown20Percent, title="20% down price target")
+plot(stockDown40Percent, title="40% down price target")
+plot(stockDown45Percent, title="45% down price target")
+plot(stockDown55Percent, title="55% down price target")
+plot(stockDown65Percent, title="65% down price target")
+plot(stockDown75Percent, title="75% down price target")
+
+
+
+
+
+
+
+
+
+
+
+
+    
