@@ -1,0 +1,94 @@
+//@version=5
+////////////////////////////////////////////////////////////
+//Dividend payout ratio as a percentage of price
+//Uses the most current payout times 4
+//Payment frequency can be changed in the inputs menu item
+//
+////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////
+// The following is for the description of this script
+// The inputs that can be changed:
+// - Number of bars to get all-time high price
+// - How many dividend payments per year
+// - Dividend $ amount to use for calculation
+// - Location on the y-axis to place the down/up label 
+
+// This chart will tell you the following:
+// - Dividend payout/year high and low for the specific period
+// - How much the ticker has gone up/down compared to the all-time high
+
+// You are able to make the following changes
+// - Change dividend $ amount
+// - Change number of bars to find the highest ticker price from
+// - Change dividend payment freqency.
+// - Move the how much the ticker has gone up/down label up or 
+//   down the chart if it is blocking your view
+///////////////////////////////////////////////////////////////
+
+indicator(title='Current Dividend payout ratio in %', shorttitle='Dividend Ratio in %')
+
+//Store value if below all time high or above
+Price_Below_Over="Down "
+
+//How many bars to look back on to find the highest price in historical records
+Stock_Price_Highest_Userinput = input.int(200, "Bars to use", 
+     tooltip="Enter the number of bars to look back on to find the highest price")
+
+//Gets the stock's high and low prices
+Stock_Price_High = request.security(syminfo.tickerid, timeframe.period, high)
+Stock_Price_Low = request.security(syminfo.tickerid, timeframe.period, low)
+
+//Gets the stock's current and highest price based on number of bars to look back to
+Stock_Price_Current = request.security(syminfo.tickerid, timeframe.period, close)
+Stock_Price_Highest = ta.highest(Stock_Price_Highest_Userinput)
+
+//Number of payments per year is defaulted to 4, quarterly
+//Dividend payments can be changed to any number such as 12, monthly or 2, semi-annually
+//Inputs menu allows modification of the payment schedule
+No_of_Payments=input.int(4, "Dividend payments", tooltip="Enter the number of dividends paid out per year")
+
+//Gets the current stock's yearly dividend
+Stock_Dividend = (request.dividends(syminfo.tickerid, dividends.gross, barmerge.gaps_off, barmerge.lookahead_off) 
+     * No_of_Payments)
+
+//Allows the user to modify the dividend paymend schedule using inputs menu
+Stock_Dividend_Userinput = input.float(0, "Quarterly Dividend",
+     tooltip = "Enter the dividend amount to use instead of the default. Enter 0 to use the ticker's default dividend") * No_of_Payments
+     
+//Where to put the percentage down/up label
+Ticker_Updown_Label = input.int(0, "Where to place label", 
+     tooltip="Enter the percentage where to place the label")
+     
+//Use stock dividend as the default if the user does not enter a non zero dividend amount
+if (Stock_Dividend_Userinput != 0)
+    Stock_Dividend := Stock_Dividend_Userinput
+
+//Calculates the stock's high and low yield in a percentage
+Dividend_Yield_High = Stock_Dividend / Stock_Price_High * 100
+Dividend_Yield_Low = Stock_Dividend / Stock_Price_Low * 100
+Price_Drop = ((Stock_Price_Current / Stock_Price_Highest - 1) *100)
+
+//Check if current price is new high or lower than all-time high
+//If new all-time high or same as all-time high, change the value
+if Price_Drop>-0.00
+    Price_Below_Over := "Up "
+if Price_Drop==0.00
+    Price_Below_Over := "Same "
+
+//Plot the dividend yields and yearly dividend payout
+plot(Dividend_Yield_High, color=color.new(color.red, 0), title='Dividend High')
+plot(Dividend_Yield_Low, color=color.new(color.green, 0), title='Dividend Low')
+plot(Stock_Dividend/No_of_Payments, color=color.new(color.blue, 0), title='Quarterly Dividend')
+
+//Label that will display the percentage up/down, the ticker's highest and current price
+//Set x-coordinates negative to push the label to the left and y negative to push label below the zero line
+Over_Under_Highest = label.new(x=bar_index-35, y=Ticker_Updown_Label, size=size.normal, textalign=text.align_left,
+     tooltip="If below all time high, the percentage will be negative. Current Highest and most recent ticker price is shown")
+
+//Display the label with the relevant information about the ticker
+label.set_color(id=Over_Under_Highest, color=color.white)
+label.set_text(id=Over_Under_Highest, text=Price_Below_Over + str.tostring(Price_Drop, "#.###") +
+     "% high $" + str.tostring(Stock_Price_Highest, "#.##") + 
+     " current $" + str.tostring(Stock_Price_Current, "#.##"))
+     
